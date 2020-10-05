@@ -42,6 +42,22 @@ def call_is_international(string_input):
     return is_international
 
 
+def simplify_number(string_input):
+    """
+    Remove leading +44 or 0044 from UK numbers
+    :param string_input: the phone number
+    :return: simplified phone number
+    """
+
+    if string_input[0:3] == '+44':
+        return string_input.replace('+44', '0')
+
+    if string_input[0:4] == '0044':
+        return string_input.replace('0044', '0')
+
+    return string_input
+
+
 def call_is_landline(string_input):
     """
     Decide if the call is landline
@@ -49,8 +65,22 @@ def call_is_landline(string_input):
     :return: True/False
     """
 
-    if string_input[0:2] in ['01', '02'] or string_input[0:4] in ['+441', '+442'] \
-            or string_input[0:5] in ['00441', '00442']:
+    if string_input[0:2] in ['01', '02']:
+        return True
+
+    return False
+
+
+def call_is_mobile(string_input):
+    """
+    Decide if a call is to a mobile number
+    :param string_input: the phone number
+    :return: True/False
+    """
+
+    if string_input[0:2] == '07':
+        if string_input[2] == 6 and string_input[0:5] != '07624':
+            return False
         return True
 
     return False
@@ -59,9 +89,14 @@ def call_is_landline(string_input):
 def call_is_toll_free(string_input):
     """
     Decide if the call was made to a toll free number
-    :param string_input:
-    :return:
+    :param string_input: the phone number
+    :return: True/False
     """
+
+    if string_input[0:3] == '080':
+        return True
+
+    return False
 
 
 def call_is_at_night(string_input):
@@ -91,7 +126,14 @@ def open_call_log_file(file_path):
             for row in reader:
                 phone_number = strip_non_numeric(row[0])
                 is_international = call_is_international(phone_number)
-                is_landline = call_is_landline(phone_number)
+
+                if not is_international:
+                    phone_number = simplify_number(phone_number)
+
+                    is_landline = call_is_landline(phone_number)
+                    is_mobile = call_is_mobile(phone_number)
+                    is_toll_free = call_is_toll_free(phone_number)
+
                 is_at_night = call_is_at_night(row[1])
 
     except FileNotFoundError:
